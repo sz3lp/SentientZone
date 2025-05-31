@@ -10,24 +10,26 @@ Coordinates:
 - Override detection
 - Watchdog update
 - Button handling
+- HVAC Actuation (Implicit via decision -> actuator)
 """
 
 import time
-import sys # Added for graceful exit
-import logging # Added for structured logging
-from datetime import datetime # Added for precise time checks
+import sys
+import logging
+from datetime import datetime
 
-# REMOVE THIS LINE: from config_loader import CONFIG
-# ADD THIS IMPORT:
-from state_manager import StateManager # Your new state manager
+# Import the new StateManager
+from state_manager import StateManager
+
+# Import the refactored SensorManager class
+from sensor_reader import SensorManager
 
 # --- GLOBAL APPLICATION SETUP ---
-# It's good practice to set up basic logging as early as possible
-# so all modules can use it.
+# Configure basic logging early. This ensures all modules can use it.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 main_logger = logging.getLogger('MainApp') # A dedicated logger for main.py
 
-# Instantiate the StateManager as the first thing that loads.
+# 1. Instantiate the StateManager. This is the central source of truth.
 # It will automatically load config.json or create a default one.
 app_state_manager = StateManager()
 
@@ -36,9 +38,12 @@ controller_id = app_state_manager.get_value('controller_id', 'UNKNOWN')
 main_logger.info(f"SentientZone Node (ID: {controller_id}) starting up.")
 main_logger.info(f"Initial operating mode: {app_state_manager.get_value('current_mode')}")
 
-# --- Import other modules (assuming they will be updated to accept app_state_manager) ---
-# For now, these imports remain the same, but we will pass app_state_manager to their functions.
-from sensor_reader import read_sensors
+# 2. Instantiate SensorManager, passing the app_state_manager
+# This sets up the physical sensor connections once at startup.
+sensor_manager_instance = SensorManager(app_state_manager)
+
+# --- Import other modules (will be updated to accept app_state_manager) ---
+# These imports remain, but their functions will be called with the state_manager instance.
 from override_manager import get_override_mode
 from decision_engine import decide_hvac_action
 from logger import log_sensor_data, log_decision
@@ -47,7 +52,7 @@ from watchdog import update_heartbeat
 from rotator import rotate_logs
 from report_generator import generate_daily_report
 
-
+# --- Main Application Loop ---
 def main_loop():
     """
     Main control loop.
@@ -63,29 +68,24 @@ def main_loop():
 
     while True:
         try:
-            # Read sensors
-            # Pass app_state_manager to read_sensors
-            sensor_data = read_sensors(app_state_manager)
+            # Read sensors using the instantiated SensorManager
+            sensor_data = sensor_manager_instance.read_sensors()
 
             # Get override mode
-            # Pass app_state_manager to get_override_mode
             override_mode = get_override_mode(app_state_manager)
 
             # Decide HVAC action
-            # Pass app_state_manager to decide_hvac_action
             decision = decide_hvac_action(sensor_data, override_mode, app_state_manager)
 
             # Log results
-            # Pass app_state_manager to log_sensor_data and log_decision
+            # Note: log_sensor_data and log_decision will need updates to accept app_state_manager
             log_sensor_data(sensor_data, app_state_manager)
             log_decision(sensor_data, decision, app_state_manager)
 
             # Update watchdog
-            # Pass app_state_manager to update_heartbeat
             update_heartbeat(app_state_manager)
 
             # Handle button press
-            # Pass app_state_manager to detect_and_apply_override
             detect_and_apply_override(app_state_manager)
 
             # Daily report based on UTC hour from config
@@ -96,12 +96,10 @@ def main_loop():
             # Check if it's the configured report hour and hasn't been reported for today yet
             if now_utc.hour == report_hour and current_date_str != last_report_date:
                 main_logger.info(f"Generating daily report for {current_date_str} (UTC).")
-                # Pass app_state_manager to generate_daily_report
                 generate_daily_report(app_state_manager)
                 last_report_date = current_date_str # Update last report date
 
             # Sleep for the configured sensor poll interval
-            # Get interval from StateManager (using sensor_poll_interval_sec from DEFAULT_CONFIG)
             loop_interval = app_state_manager.get_value('sensor_poll_interval_sec', 30)
             time.sleep(loop_interval)
 
@@ -109,10 +107,8 @@ def main_loop():
             main_logger.info("KeyboardInterrupt detected. Shutting down gracefully.")
             break # Exit the loop on Ctrl+C
         except Exception as e:
-            # Use structured logging instead of print
             main_logger.error(f"An error occurred in main loop: {e}", exc_info=True)
-            # Short sleep to prevent rapid error looping
-            time.sleep(5)
+            time.sleep(5) # Short sleep to prevent rapid error looping
 
 # --- Application Entry Point ---
 if __name__ == "__main__":
@@ -126,5 +122,10 @@ if __name__ == "__main__":
         main_logger.info("Attempting to force save final configuration state...")
         # IMPORTANT: Force a save on application exit to ensure all pending changes are persisted
         app_state_manager.save_config_debounced(force=True)
+        
+        # Clean up SensorManager resources (GPIO)
+        if 'sensor_manager_instance' in locals() and sensor_manager_instance:
+            sensor_manager_instance.cleanup()
+
         main_logger.info("Application shutdown complete.")
         sys.exit(0) # Explicitly exit with success status
