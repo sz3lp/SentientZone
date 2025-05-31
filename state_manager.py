@@ -58,6 +58,7 @@ class StateManager:
         'pir_pin': 27,  # BCM GPIO pin number for the PIR motion sensor output.
                         # **Uncertainty/Assumptions:** Assumes you're using BCM numbering.
                         # Check your PIR wiring.
+        'button_gpio_pin': 26, # BCM pin for override button
         'sensor_poll_interval_sec': 30,  # How often (in seconds) the system reads sensor data.
                                          # Too frequent could waste CPU, too infrequent might miss rapid changes.
         'minimum_run_time_sec': 180,  # Minimum time (in seconds) the HVAC must run once turned on.
@@ -353,6 +354,11 @@ class StateManager:
             # Basic validation: it should be a non-empty string. UUID format check could be added.
             if not isinstance(value, str) or len(value) == 0:
                 state_manager_logger.error(f"Validation Error: '{key}' must be a non-empty string, got '{value}'.")
+                return False
+            return True
+        elif key == 'button_gpio_pin':
+            if not isinstance(value, int) or not (0 <= value <= 40):
+                state_manager_logger.error(f"Validation Error: GPIO pin '{key}' ({value}) invalid or out of typical BCM range [0, 40].")
                 return False
             return True
         elif key == 'sensor_poll_interval_sec':
