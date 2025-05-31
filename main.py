@@ -24,6 +24,9 @@ from state_manager import StateManager
 # Import the refactored SensorManager class
 from sensor_reader import SensorManager
 
+# Import the refactored button functions
+from button import setup_button, detect_and_apply_override, cleanup_button
+
 # --- GLOBAL APPLICATION SETUP ---
 # Configure basic logging early. This ensures all modules can use it.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -42,12 +45,15 @@ main_logger.info(f"Initial operating mode: {app_state_manager.get_value('current
 # This sets up the physical sensor connections once at startup.
 sensor_manager_instance = SensorManager(app_state_manager)
 
+# 3. Initialize Button hardware
+# This sets up the physical button input once at startup.
+setup_button(app_state_manager)
+
 # --- Import other modules (will be updated to accept app_state_manager) ---
 # These imports remain, but their functions will be called with the state_manager instance.
 from override_manager import get_override_mode
 from decision_engine import decide_hvac_action
 from logger import log_sensor_data, log_decision
-from button import detect_and_apply_override
 from watchdog import update_heartbeat
 from rotator import rotate_logs
 from report_generator import generate_daily_report
@@ -78,7 +84,6 @@ def main_loop():
             decision = decide_hvac_action(sensor_data, override_mode, app_state_manager)
 
             # Log results
-            # Note: log_sensor_data and log_decision will need updates to accept app_state_manager
             log_sensor_data(sensor_data, app_state_manager)
             log_decision(sensor_data, decision, app_state_manager)
 
@@ -126,6 +131,11 @@ if __name__ == "__main__":
         # Clean up SensorManager resources (GPIO)
         if 'sensor_manager_instance' in locals() and sensor_manager_instance:
             sensor_manager_instance.cleanup()
+
+        # Clean up Button GPIO resources
+        # The 'cleanup_button()' function is called directly as it's a global function
+        # and doesn't rely on an instantiated object being present in 'locals()'
+        cleanup_button()
 
         main_logger.info("Application shutdown complete.")
         sys.exit(0) # Explicitly exit with success status
