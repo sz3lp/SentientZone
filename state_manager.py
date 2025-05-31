@@ -77,6 +77,7 @@ class StateManager:
                                      # Used for graceful degradation if the DHT22 sensor temporarily fails.
         'hvac_status': 'unknown' # Current operational state of the HVAC system ('on', 'off', 'unknown').
                                  # This reflects the state the Actuator Control is trying to maintain.
+        'log_retention_days': 30, # Default to keep logs for 30 days
     }
 
     def __init__(self):
@@ -374,6 +375,11 @@ class StateManager:
         elif key == 'dht_temp_offset':
             if not isinstance(value, (float, int)) or not (-5.0 <= value <= 5.0): # Reasonable offset range for calibration.
                 state_manager_logger.error(f"Validation Error: '{key}' must be a number between -5.0 and 5.0, got '{value}'.")
+                return False
+            return True
+        elif key == 'log_retention_days':
+            if not isinstance(value, int) or not (1 <= value <= 365): # Example range
+                state_manager_logger.error(f"Validation Error: Log retention days '{key}' ({value}) invalid or out of typical range [1, 365].")
                 return False
             return True
         elif key == 'override_schedule':
