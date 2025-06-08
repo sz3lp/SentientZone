@@ -4,9 +4,14 @@ import os
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-BASE_DIR = Path(os.environ.get('SZ_BASE_DIR', '/home/pi/sz'))
-LOG_PATH = BASE_DIR / 'logs' / 'sentientzone.log'
-CHAIN_PATH = LOG_PATH.parent / 'log_chain.txt'
+def _paths() -> tuple[Path, Path, Path]:
+    """Return base, log and chain paths based on environment."""
+    base = Path(os.environ.get("SZ_BASE_DIR", "/home/pi/sz"))
+    log = base / "logs" / "sentientzone.log"
+    chain = log.parent / "log_chain.txt"
+    return base, log, chain
+
+BASE_DIR, LOG_PATH, CHAIN_PATH = _paths()
 _FORMAT = logging.Formatter('[%(asctime)s] %(levelname)s %(name)s - %(message)s')
 _configured = False
 
@@ -44,9 +49,10 @@ class HashChainingHandler(TimedRotatingFileHandler):
 
 
 def _configure() -> None:
-    global _configured
+    global _configured, BASE_DIR, LOG_PATH, CHAIN_PATH
     if _configured:
         return
+    BASE_DIR, LOG_PATH, CHAIN_PATH = _paths()
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     handler = HashChainingHandler(str(LOG_PATH), CHAIN_PATH, when='midnight', backupCount=7)
     handler.setFormatter(_FORMAT)

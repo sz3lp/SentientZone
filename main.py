@@ -17,7 +17,8 @@ from logger import get_logger
 
 
 
-LOG_PATH = '/home/pi/sz/logs/sentientzone.log'
+BASE_DIR = Path(os.environ.get("SZ_BASE_DIR", "/home/pi/sz"))
+LOG_PATH = str(BASE_DIR / "logs" / "sentientzone.log")
 
 
 def main():

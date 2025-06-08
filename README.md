@@ -26,7 +26,7 @@ The system is organised into modules:
 - **metrics.py** – writes runtime metrics to `logs/metrics.json`
 - **main.py** – entry point coordinating the control loop and background threads
 
-Daily logs are written to `/home/pi/sz/logs/sentientzone.log` with rotation.
+Daily logs are written to `$SZ_BASE_DIR/logs/sentientzone.log` by default.
 
 ## Quickstart
 
@@ -58,6 +58,13 @@ export SZ_USER=ubuntu
 These variables are also read by `sz_ui.service`, `logger.py` and
 `metrics.py`, so the service will start correctly even if the repository lives
 outside `/home/pi`.
+
+## Environment Variables
+
+| Variable      | Description                                     | Default          |
+|---------------|-------------------------------------------------|------------------|
+| `SZ_BASE_DIR` | Base directory for the repository and runtime.  | `/home/pi/sz`    |
+| `SZ_USER`     | Linux user the systemd service runs under.      | `pi`             |
 
 During development you can run the program manually:
 

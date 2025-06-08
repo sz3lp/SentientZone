@@ -4,8 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=SZ_BASE_DIR=/home/pi/sz
-Environment=SZ_USER=pi
+EnvironmentFile=-/etc/default/sz_ui
 ExecStart=${SZ_BASE_DIR}/venv/bin/python ${SZ_BASE_DIR}/main.py
 WorkingDirectory=${SZ_BASE_DIR}
 Restart=on-failure
