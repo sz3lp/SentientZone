@@ -1,27 +1,24 @@
 #!/bin/bash
-# Automated deployment script for SentientZone
+# Automated deployment script for SentientZone using SSH keys
 
-set -e
+set -euo pipefail
 
 usage() {
-    echo "Usage: $0 -H <host> -U <user> -R <repo_url> [-p]" >&2
+    echo "Usage: $0 -H <host> -U <user> -R <repo_url>" >&2
     echo "  -H  Raspberry Pi hostname or IP" >&2
     echo "  -U  SSH username" >&2
     echo "  -R  Git repository URL" >&2
-    echo "  -p  Prompt for password instead of using SSH keys" >&2
 }
 
 PI_HOST=""
 PI_USER=""
 REPO_URL=""
-USE_PASS=false
 
-while getopts "H:U:R:p" opt; do
+while getopts "H:U:R:" opt; do
   case "$opt" in
     H) PI_HOST="$OPTARG" ;;
     U) PI_USER="$OPTARG" ;;
     R) REPO_URL="$OPTARG" ;;
-    p) USE_PASS=true ;;
     *) usage; exit 1 ;;
   esac
 done
@@ -31,15 +28,20 @@ if [ -z "$PI_HOST" ] || [ -z "$PI_USER" ] || [ -z "$REPO_URL" ]; then
     exit 1
 fi
 
-SSH_CMD="ssh -o StrictHostKeyChecking=no"
-if $USE_PASS; then
-    if ! command -v sshpass >/dev/null; then
-        echo "sshpass is required for password authentication. Please install it first." >&2
-        exit 1
-    fi
-    read -s -p "Password for $PI_USER@$PI_HOST: " PI_PASS
-    echo
-    SSH_CMD="sshpass -p \"$PI_PASS\" ssh -o StrictHostKeyChecking=no"
+if ! command -v ssh >/dev/null; then
+    echo "ssh command not found" >&2
+    exit 1
+fi
+
+if ! command -v git >/dev/null; then
+    echo "git command not found" >&2
+    exit 1
+fi
+
+SSH_CMD="ssh -o BatchMode=yes -o StrictHostKeyChecking=no"
+if ! $SSH_CMD "$PI_USER@$PI_HOST" exit >/dev/null 2>&1; then
+    echo "SSH connection failed. Ensure key-based authentication is configured." >&2
+    exit 1
 fi
 
 $SSH_CMD $PI_USER@$PI_HOST <<EOF_REMOTE
