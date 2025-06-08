@@ -9,6 +9,7 @@ SZ_USER="${SZ_USER:-pi}"
 VENV_DIR="$BASE_DIR/venv"
 REQUIREMENTS="$BASE_DIR/requirements.txt"
 SERVICE_FILE="$BASE_DIR/sz_ui.service"
+ENV_FILE="/etc/default/sz_ui"
 STATE_DIR="$BASE_DIR/state"
 LOG_DIR="$BASE_DIR/logs"
 
@@ -38,6 +39,10 @@ fi
 if [ -f "$REQUIREMENTS" ]; then
     "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS"
 fi
+
+# Write environment file for systemd
+echo "SZ_BASE_DIR=$BASE_DIR" | sudo tee "$ENV_FILE" > /dev/null
+echo "SZ_USER=$SZ_USER" | sudo tee -a "$ENV_FILE" > /dev/null
 
 # Install systemd service
 sudo cp "$SERVICE_FILE" /etc/systemd/system/sz_ui.service
