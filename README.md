@@ -40,7 +40,7 @@ cd SentientZone
 
 # Provide your API key securely
 export SZ_API_KEY=<your-key>
-# or place it in config/api_key.secret
+# or place it in config/api_key.secret (do not commit this file)
 
 # Start application (systemd unit installs as sz_ui.service)
 sudo systemctl start sz_ui.service
