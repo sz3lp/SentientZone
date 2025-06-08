@@ -59,3 +59,12 @@ def test_env_api_key_override(tmp_path, monkeypatch):
     monkeypatch.setenv("SZ_API_KEY", "envkey")
     sm = StateManager(str(config_path), str(state_path))
     assert sm.config["api_key"] == "envkey"
+
+
+def test_file_api_key(tmp_path, monkeypatch):
+    config_path, state_path = create_paths(tmp_path)
+    secret = tmp_path / "keyfile"
+    secret.write_text("filekey")
+    monkeypatch.setenv("SZ_API_KEY_FILE", str(secret))
+    sm = StateManager(str(config_path), str(state_path))
+    assert sm.config["api_key"] == "filekey"

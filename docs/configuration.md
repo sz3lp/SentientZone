@@ -46,4 +46,5 @@ placeholder such as `CHANGE_ME`. The real key is loaded at runtime from the
 - Modify the file only when the service is stopped to avoid race conditions.
 - Keep a backup of the original configuration.
 - Store your real API key in the `SZ_API_KEY` environment variable or a file
-  specified by `SZ_API_KEY_FILE` (defaults to `config/api_key.secret`).
+  specified by `SZ_API_KEY_FILE` (defaults to `config/api_key.secret`). Never
+  commit the secrets file to version control.
