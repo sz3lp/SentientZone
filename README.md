@@ -89,4 +89,5 @@ See the `docs/` directory for API details, configuration reference and troublesh
 
 ## Maintainer & License
 
-Maintained by the SentientZone team. Released under the MIT License.
+Maintained by the SentientZone team. Released under the MIT License. See
+[LICENSE](LICENSE) for details.
