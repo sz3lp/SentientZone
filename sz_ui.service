@@ -4,10 +4,12 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/pi/sz/venv/bin/python /home/pi/sz/main.py
-WorkingDirectory=/home/pi/sz
+Environment=SZ_BASE_DIR=/home/pi/sz
+Environment=SZ_USER=pi
+ExecStart=${SZ_BASE_DIR}/venv/bin/python ${SZ_BASE_DIR}/main.py
+WorkingDirectory=${SZ_BASE_DIR}
 Restart=on-failure
-User=pi
+User=${SZ_USER}
 Environment=PYTHONUNBUFFERED=1
 
 [Install]

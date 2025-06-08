@@ -4,7 +4,8 @@ set -euo pipefail
 LOGFILE="install.log"
 exec > >(tee -a "$LOGFILE") 2>&1
 
-BASE_DIR="/home/lukep/sz"
+BASE_DIR="${SZ_BASE_DIR:-/home/pi/sz}"
+SZ_USER="${SZ_USER:-pi}"
 VENV_DIR="$BASE_DIR/venv"
 REQUIREMENTS="$BASE_DIR/requirements.txt"
 SERVICE_FILE="$BASE_DIR/sz_ui.service"

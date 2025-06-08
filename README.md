@@ -42,6 +42,19 @@ cd SentientZone
 sudo systemctl start sz_ui.service
 ```
 
+The installer assumes the project will be placed in `/home/pi/sz` and will run
+under the `pi` user.  To override these defaults set the environment variables
+`SZ_BASE_DIR` and `SZ_USER` before running `setup.sh`:
+
+```bash
+export SZ_BASE_DIR=/opt/sz
+export SZ_USER=ubuntu
+./setup.sh
+```
+These variables are also read by `sz_ui.service`, `logger.py` and
+`metrics.py`, so the service will start correctly even if the repository lives
+outside `/home/pi`.
+
 During development you can run the program manually:
 
 ```bash

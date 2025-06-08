@@ -13,7 +13,8 @@ from typing import Optional
 
 
 
-METRICS_FILE = Path("/home/pi/sz/logs/metrics.json")
+BASE_DIR = Path(os.environ.get("SZ_BASE_DIR", "/home/pi/sz"))
+METRICS_FILE = BASE_DIR / "logs" / "metrics.json"
 
 
 class MetricsManager:
