@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any, Dict
 
 from logger import get_logger
+from typing import Optional
+
+
 
 
 METRICS_FILE = Path("/home/pi/sz/logs/metrics.json")
@@ -18,7 +21,7 @@ class MetricsManager:
 
     _instance = None
 
-    def __new__(cls, path: Path | None = None) -> "MetricsManager":
+    def __new__(cls, path: Optional[Path] = None) -> "MetricsManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._init(path or METRICS_FILE)
