@@ -22,11 +22,11 @@ All runtime settings are stored in `config/config.json`. The file is loaded by
 ```json
 {
   "pins": {
-    "dht": 17,
-    "motion": 27,
-    "cooling": 23,
-    "heating": 22,
-    "fan": 24,
+    "dht": 4,
+    "motion": 5,
+    "cooling": 17,
+    "heating": 27,
+    "fan": 22,
     "button": 6
   },
   "thresholds": {
