@@ -5,7 +5,7 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from logger import get_logger
 
@@ -18,7 +18,7 @@ class MetricsManager:
 
     _instance = None
 
-    def __new__(cls, path: Path | None = None) -> "MetricsManager":
+    def __new__(cls, path: Optional[Path] = None) -> "MetricsManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._init(path or METRICS_FILE)
@@ -28,8 +28,8 @@ class MetricsManager:
         self.path = path
         self.start = time.time()
         self.error_count = 0
-        self.last_temp_f: float | None = None
-        self.last_temp_time: float | None = None
+        self.last_temp_f: Optional[float] = None
+        self.last_temp_time: Optional[float] = None
         self.lock = threading.Lock()
         self.logger = get_logger(__name__)
 
@@ -82,7 +82,7 @@ class MetricsManager:
         return int(time.time() - self.start)
 
 
-def get_metrics(path: Path | None = None) -> MetricsManager:
+def get_metrics(path: Optional[Path] = None) -> MetricsManager:
     """Return the singleton metrics manager."""
     return MetricsManager(path)
 
