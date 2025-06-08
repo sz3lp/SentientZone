@@ -48,6 +48,16 @@ During development you can run the program manually:
 python main.py
 ```
 
+## Development Setup
+
+Install additional dependencies for running tests and linting:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+This installs `Flask`, `python-dateutil` and tooling such as `pytest`, `flake8` and `mypy`.
+
 ## Directory Structure
 
 ```
