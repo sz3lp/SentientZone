@@ -1,7 +1,9 @@
 # Configuration
 
 All runtime settings are stored in `config/config.json`. The file is loaded by
-`StateManager` at startup.
+`StateManager` at startup. The API key value in this file should be set to a
+placeholder such as `CHANGE_ME`. The real key is loaded at runtime from the
+`SZ_API_KEY` environment variable or from a secrets file.
 
 ## Schema
 
@@ -35,7 +37,7 @@ All runtime settings are stored in `config/config.json`. The file is loaded by
   },
   "loop_interval": 5,
   "motion_timeout": 300,
-  "api_key": "mysecret"
+  "api_key": "CHANGE_ME"
 }
 ```
 
@@ -43,4 +45,5 @@ All runtime settings are stored in `config/config.json`. The file is loaded by
 
 - Modify the file only when the service is stopped to avoid race conditions.
 - Keep a backup of the original configuration.
-- Ensure the API key is kept secret if the network is exposed.
+- Store your real API key in the `SZ_API_KEY` environment variable or a file
+  specified by `SZ_API_KEY_FILE` (defaults to `config/api_key.secret`).

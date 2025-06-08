@@ -1,9 +1,11 @@
 import logging
 import hashlib
+import os
 from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 
-LOG_PATH = Path('/home/pi/sz/logs/sentientzone.log')
+BASE_DIR = Path(os.environ.get('SZ_BASE_DIR', '/home/pi/sz'))
+LOG_PATH = BASE_DIR / 'logs' / 'sentientzone.log'
 CHAIN_PATH = LOG_PATH.parent / 'log_chain.txt'
 _FORMAT = logging.Formatter('[%(asctime)s] %(levelname)s %(name)s - %(message)s')
 _configured = False
