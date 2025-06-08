@@ -38,6 +38,10 @@ cd SentientZone
 # Install system and Python dependencies
 ./setup.sh
 
+# Provide your API key securely
+export SZ_API_KEY=<your-key>
+# or place it in config/api_key.secret
+
 # Start application (systemd unit installs as sz_ui.service)
 sudo systemctl start sz_ui.service
 ```

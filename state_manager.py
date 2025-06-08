@@ -27,6 +27,7 @@ class StateManager:
         self._lock = threading.Lock()
         self.logger = get_logger(__name__)
         self.config = self._load_json(self.config_path, {})
+        self._load_api_key()
         self.state = self._load_state()
 
     def _load_json(self, path: Path, default: Dict[str, Any]) -> Dict[str, Any]:
@@ -37,6 +38,20 @@ class StateManager:
             except Exception as exc:  # pragma: no cover - file may be corrupted
                 self.logger.exception("Failed loading %s: %s", path, exc)
         return default.copy()
+
+    def _load_api_key(self) -> None:
+        """Load API key from env var or secrets file."""
+        env_key = os.getenv("SZ_API_KEY")
+        if env_key:
+            self.config["api_key"] = env_key
+            return
+        file_path = os.getenv("SZ_API_KEY_FILE", "config/api_key.secret")
+        if Path(file_path).exists():
+            try:
+                with open(file_path, "r") as f:
+                    self.config["api_key"] = f.read().strip()
+            except Exception as exc:  # pragma: no cover - file issues
+                self.logger.exception("Failed loading API key from %s: %s", file_path, exc)
 
     def _load_state(self) -> Dict[str, Any]:
         data = self._load_json(self.state_path, self.DEFAULT_STATE)

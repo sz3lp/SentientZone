@@ -13,5 +13,5 @@
     },
     "loop_interval": 5,
     "motion_timeout": 300,
-    "api_key": "mysecret"
+    "api_key": "CHANGE_ME"
 }
