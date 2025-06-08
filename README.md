@@ -48,6 +48,17 @@ During development you can run the program manually:
 python main.py
 ```
 
+## Deploy to Raspberry Pi
+
+Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi:
+
+```bash
+./deploy_to_pi.sh -H <pi_host> -U <pi_user> -R <repo_url> [-p]
+```
+
+Provide `-p` to be prompted for the SSH password, otherwise the script assumes
+key-based authentication.
+
 ## Directory Structure
 
 ```
