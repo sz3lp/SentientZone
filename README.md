@@ -1,85 +1,65 @@
 # SentientZone
 
-**SentientZone** is an offline, cryptographically verifiable HVAC controller designed to optimize energy usage without relying on cloud services. It operates on a Raspberry Pi, making autonomous decisions based on environmental sensor data, and logs every action with cryptographic signatures to ensure tamper-proof records.
-
-## Features
-
-* **Offline Operation**: Functions entirely without internet connectivity, ensuring privacy and reliability.
-* **Cryptographic Logging**: Utilizes Ed25519 signatures to authenticate each decision, creating an immutable audit trail.
-* **Sensor Integration**: Monitors temperature, humidity, and motion to make informed HVAC control decisions.
-* **Energy Optimization**: Reduces HVAC runtime by analyzing environmental data, leading to potential energy savings.
-* **User Overrides**: Allows manual control through a local web interface, with all overrides logged and signed.
-* **Modular Design**: Comprises distinct modules for sensors, decision-making, actuation, logging, and reporting.
-
-## System Architecture
-
-```
-[ Sensors ] → [ Decision Engine ] → [ Actuator Controller ]
-      ↓                 ↓                   ↓
-[ Logger ] ← [ Override Manager ] ← [ User Interface ]
-      ↓
-[ Cryptographic Signer ] → [ Report Generator ]
-```
-
-## Installation
-
-1. **Clone the Repository**:
-
-   ```bash
-   git clone https://github.com/sz3lp/SentientZone.git
-   cd SentientZone
-   ```
-
-2. **Install Dependencies**:
-   Ensure you have Python 3 installed. Then, install required packages:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure the System**:
-   Edit the `config.ini` file to match your hardware setup and preferences.
-
-4. **Run the Installer**:
-
-   ```bash
-   python installer.py
-   ```
-
-5. **Start the Main Application**:
-
-   ```bash
-   python main.py
-   ```
-
-## Usage
-
-* **Monitoring**: Access the local web interface at `http://<raspberry_pi_ip>:5000` to view system status and logs.
-* **Manual Overrides**: Use the web interface to manually control HVAC states. All overrides are logged with signatures.
-* **Reports**: Daily reports are generated and saved in the `reports/` directory, detailing system performance and energy usage.
+SentientZone is an offline HVAC controller built for Raspberry Pi. It reads a DHT22
+sensor and PIR motion detector, then actuates cooling, heating and fan relays based
+on configurable thresholds. A small Flask API exposes the current state, allows
+manual overrides, and serves log files.
 
 ## Hardware Requirements
 
-* Raspberry Pi (Model 3 or later recommended)
-* DHT22 Temperature and Humidity Sensor
-* PIR Motion Sensor
-* Relay Module compatible with Raspberry Pi GPIO
-* HVAC system with accessible control interface
+- Raspberry Pi 4 (or compatible)
+- DHT22 temperature/humidity sensor
+- PIR motion sensor
+- Three relay channels for cooling, heating and fan
+- Optional button for local override
 
-## Security and Privacy
+## Software Overview
 
-SentientZone emphasizes user privacy and data integrity:
+The system is organised into modules:
 
-* **No Cloud Dependency**: All operations and data storage occur locally.
-* **Tamper-Proof Logs**: Each decision and override is signed using Ed25519, ensuring authenticity.
-* **User Control**: Manual overrides are respected and logged, providing transparency and control.
+- **sensors.py** – reads temperature and motion
+- **control.py** – drives relays via the hardware interface
+- **hardware.py** – abstracts GPIO operations
+- **state_manager.py** – persists state to `state/state.json`
+- **override_handler.py** – manages timed overrides
+- **server.py** – Flask API exposing `/state`, `/override`, `/logs` and `/healthz`
+- **metrics.py** – writes runtime metrics to `logs/metrics.json`
+- **main.py** – entry point coordinating the control loop and background threads
 
-## Contributing
+Daily logs are written to `/home/pi/sz/logs/sentientzone.log` with rotation.
 
-Contributions are welcome! Please fork the repository and submit a pull request with your enhancements or bug fixes.
+## Quickstart
 
-## License
+```bash
+# Clone repository
+git clone <REPO_URL>
+cd SentientZone
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+# Install system and Python dependencies
+./setup.sh
 
----
+# Start application (systemd unit installs as sz_ui.service)
+sudo systemctl start sz_ui.service
+```
+
+During development you can run the program manually:
+
+```bash
+python main.py
+```
+
+## Directory Structure
+
+```
+config/           Configuration files
+state/            Persistent runtime state
+logs/             Log and metrics output
+tests/            Pytest suite and mocks
+.github/workflows CI configuration
+```
+
+See the `docs/` directory for API details, configuration reference and troubleshooting.
+
+## Maintainer & License
+
+Maintained by the SentientZone team. Released under the MIT License.

@@ -1,0 +1,17 @@
+{
+    "pins": {
+        "dht": 17,
+        "motion": 27,
+        "cooling": 23,
+        "heating": 22,
+        "fan": 24,
+        "button": 6
+    },
+    "thresholds": {
+        "cool": 75,
+        "heat": 68
+    },
+    "loop_interval": 5,
+    "motion_timeout": 300,
+    "api_key": "mysecret"
+}

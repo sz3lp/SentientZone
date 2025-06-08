@@ -1,0 +1,15 @@
+[Unit]
+Description=SentientZone HVAC Controller
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/sz/venv/bin/python /home/pi/sz/main.py
+WorkingDirectory=/home/pi/sz
+Restart=on-failure
+User=pi
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+

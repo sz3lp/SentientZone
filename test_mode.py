@@ -12,11 +12,14 @@ Behavior:
 - Emulates sensor_reader.read_sensors()
 - Cycles through fake inputs and prints decisions
 """
+__test__ = False
 
 import time
 from decision_engine import decide_hvac_action
 from override_manager import get_override_mode
-from logger import log_sensor_data, log_decision
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 # Test scenario: cycle through common input states
 TEST_SEQUENCE = [
@@ -37,8 +40,8 @@ def run_test_cycle(interval_sec=2):
         override_mode = get_override_mode()
         decision = decide_hvac_action(fake, override_mode)
 
-        log_sensor_data(fake)
-        log_decision(fake, decision)
+        logger.info("Sensor: %s", fake)
+        logger.info("Decision: %s", decision)
 
         print(f"Sensor: {fake}")
         print(f"Decision: {decision}")
