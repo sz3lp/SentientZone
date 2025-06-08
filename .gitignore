@@ -1,0 +1,4 @@
+# Ignore secrets
+config/api_key.secret
+__pycache__/
+*.pyc

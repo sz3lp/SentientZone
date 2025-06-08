@@ -26,7 +26,7 @@ The system is organised into modules:
 - **metrics.py** – writes runtime metrics to `logs/metrics.json`
 - **main.py** – entry point coordinating the control loop and background threads
 
-Daily logs are written to `/home/pi/sz/logs/sentientzone.log` with rotation.
+Daily logs are written to `$SZ_BASE_DIR/logs/sentientzone.log` by default.
 
 ## Quickstart
 
@@ -38,9 +38,33 @@ cd SentientZone
 # Install system and Python dependencies
 ./setup.sh
 
+# Provide your API key securely
+export SZ_API_KEY=<your-key>
+# or place it in config/api_key.secret (do not commit this file)
+
 # Start application (systemd unit installs as sz_ui.service)
 sudo systemctl start sz_ui.service
 ```
+
+The installer assumes the project will be placed in `/home/pi/sz` and will run
+under the `pi` user.  To override these defaults set the environment variables
+`SZ_BASE_DIR` and `SZ_USER` before running `setup.sh`:
+
+```bash
+export SZ_BASE_DIR=/opt/sz
+export SZ_USER=ubuntu
+./setup.sh
+```
+These variables are also read by `sz_ui.service`, `logger.py` and
+`metrics.py`, so the service will start correctly even if the repository lives
+outside `/home/pi`.
+
+## Environment Variables
+
+| Variable      | Description                                     | Default          |
+|---------------|-------------------------------------------------|------------------|
+| `SZ_BASE_DIR` | Base directory for the repository and runtime.  | `/home/pi/sz`    |
+| `SZ_USER`     | Linux user the systemd service runs under.      | `pi`             |
 
 During development you can run the program manually:
 
@@ -50,6 +74,7 @@ python main.py
 
 ## Deploy to Raspberry Pi
 
+ f8j5tt-codex/remove-plain-text-credentials-and-improve-config
 Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi:
 
 ```bash
@@ -58,6 +83,18 @@ Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi:
 
 Provide `-p` to be prompted for the SSH password, otherwise the script assumes
 key-based authentication.
+
+The `deploy_to_pi.sh` script installs or updates SentientZone on a Raspberry Pi
+configured for key-based SSH access:
+
+```bash
+./deploy_to_pi.sh -H <pi_host> -U <pi_user> -R <repo_url>
+```
+
+The repository is cloned to `/opt/sentientzone` and the service started using
+`sz_ui.service`. The script fails if an SSH connection cannot be established.
+
+ main
 
 ## Directory Structure
 
@@ -73,4 +110,5 @@ See the `docs/` directory for API details, configuration reference and troublesh
 
 ## Maintainer & License
 
-Maintained by the SentientZone team. Released under the MIT License.
+Maintained by the SentientZone team. Released under the MIT License. See
+[LICENSE](LICENSE) for details.

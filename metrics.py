@@ -11,9 +11,15 @@ from logger import get_logger
 from typing import Optional
 
 
+def _default_metrics_path() -> Path:
+    """Return metrics file path based on SZ_BASE_DIR."""
+    base = Path(os.environ.get("SZ_BASE_DIR", "/home/pi/sz"))
+    return base / "logs" / "metrics.json"
 
 
-METRICS_FILE = Path("/home/pi/sz/logs/metrics.json")
+
+
+
 
 
 class MetricsManager:
@@ -24,7 +30,7 @@ class MetricsManager:
     def __new__(cls, path: Optional[Path] = None) -> "MetricsManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._init(path or METRICS_FILE)
+            cls._instance._init(path or _default_metrics_path())
         return cls._instance
 
     def _init(self, path: Path) -> None:

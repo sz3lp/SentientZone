@@ -1,0 +1,8 @@
+Flask
+python-dateutil
+adafruit-circuitpython-dht
+RPi.GPIO
+pytest
+pytest-mock
+flake8
+mypy

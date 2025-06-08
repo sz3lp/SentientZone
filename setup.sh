@@ -4,14 +4,23 @@ set -euo pipefail
 LOGFILE="install.log"
 exec > >(tee -a "$LOGFILE") 2>&1
 
-BASE_DIR="/home/lukep/sz"
+BASE_DIR="${SZ_BASE_DIR:-/home/pi/sz}"
+SZ_USER="${SZ_USER:-pi}"
 VENV_DIR="$BASE_DIR/venv"
 REQUIREMENTS="$BASE_DIR/requirements.txt"
 SERVICE_FILE="$BASE_DIR/sz_ui.service"
+ENV_FILE="/etc/default/sz_ui"
 STATE_DIR="$BASE_DIR/state"
 LOG_DIR="$BASE_DIR/logs"
 
 echo "Starting SentientZone setup..."
+
+# If SZ_API_KEY is set, store it in a secrets file
+if [ -n "${SZ_API_KEY:-}" ]; then
+    mkdir -p "$BASE_DIR/config"
+    echo "$SZ_API_KEY" > "$BASE_DIR/config/api_key.secret"
+    chmod 600 "$BASE_DIR/config/api_key.secret"
+fi
 
 # Create folders
 mkdir -p "$STATE_DIR" "$LOG_DIR"
@@ -30,6 +39,10 @@ fi
 if [ -f "$REQUIREMENTS" ]; then
     "$VENV_DIR/bin/pip" install -r "$REQUIREMENTS"
 fi
+
+# Write environment file for systemd
+echo "SZ_BASE_DIR=$BASE_DIR" | sudo tee "$ENV_FILE" > /dev/null
+echo "SZ_USER=$SZ_USER" | sudo tee -a "$ENV_FILE" > /dev/null
 
 # Install systemd service
 sudo cp "$SERVICE_FILE" /etc/systemd/system/sz_ui.service
