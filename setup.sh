@@ -14,6 +14,13 @@ LOG_DIR="$BASE_DIR/logs"
 
 echo "Starting SentientZone setup..."
 
+# If SZ_API_KEY is set, store it in a secrets file
+if [ -n "${SZ_API_KEY:-}" ]; then
+    mkdir -p "$BASE_DIR/config"
+    echo "$SZ_API_KEY" > "$BASE_DIR/config/api_key.secret"
+    chmod 600 "$BASE_DIR/config/api_key.secret"
+fi
+
 # Create folders
 mkdir -p "$STATE_DIR" "$LOG_DIR"
 

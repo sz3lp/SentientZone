@@ -1,7 +1,8 @@
 # API Reference
 
-All POST requests require an `X-API-Key` header that matches the `api_key` value
-in `config/config.json`. The server listens on `127.0.0.1:8080`.
+All POST requests require an `X-API-Key` header that matches the API key loaded
+by `StateManager`. The value is taken from the `SZ_API_KEY` environment variable
+or from the secrets file if provided. The server listens on `127.0.0.1:8080`.
 
 ## GET /state
 
