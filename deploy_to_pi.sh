@@ -1,17 +1,48 @@
 #!/bin/bash
 # Automated deployment script for SentientZone
 
-PI_HOST="raspberrypi.local"
-PI_USER="pi"
-PI_PASS="raspberry"
-REPO_URL="<REPLACE_WITH_YOUR_REPO>"
+set -e
 
-if ! command -v sshpass >/dev/null; then
-  echo "sshpass is required. Please install it first." >&2
-  exit 1
+usage() {
+    echo "Usage: $0 -H <host> -U <user> -R <repo_url> [-p]" >&2
+    echo "  -H  Raspberry Pi hostname or IP" >&2
+    echo "  -U  SSH username" >&2
+    echo "  -R  Git repository URL" >&2
+    echo "  -p  Prompt for password instead of using SSH keys" >&2
+}
+
+PI_HOST=""
+PI_USER=""
+REPO_URL=""
+USE_PASS=false
+
+while getopts "H:U:R:p" opt; do
+  case "$opt" in
+    H) PI_HOST="$OPTARG" ;;
+    U) PI_USER="$OPTARG" ;;
+    R) REPO_URL="$OPTARG" ;;
+    p) USE_PASS=true ;;
+    *) usage; exit 1 ;;
+  esac
+done
+
+if [ -z "$PI_HOST" ] || [ -z "$PI_USER" ] || [ -z "$REPO_URL" ]; then
+    usage
+    exit 1
 fi
 
-sshpass -p "$PI_PASS" ssh -o StrictHostKeyChecking=no $PI_USER@$PI_HOST <<'EOF_REMOTE'
+SSH_CMD="ssh -o StrictHostKeyChecking=no"
+if $USE_PASS; then
+    if ! command -v sshpass >/dev/null; then
+        echo "sshpass is required for password authentication. Please install it first." >&2
+        exit 1
+    fi
+    read -s -p "Password for $PI_USER@$PI_HOST: " PI_PASS
+    echo
+    SSH_CMD="sshpass -p \"$PI_PASS\" ssh -o StrictHostKeyChecking=no"
+fi
+
+$SSH_CMD $PI_USER@$PI_HOST <<EOF_REMOTE
 set -e
 
 sudo apt-get update
