@@ -26,7 +26,9 @@ The system is organised into modules:
 - **metrics.py** – writes runtime metrics to `logs/metrics.json`
 - **main.py** – entry point coordinating the control loop and background threads
 
-Daily logs are written to `$SZ_BASE_DIR/logs/sentientzone.log` by default.
+Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi.
+The script checks for required tools, clones the repository if needed and pulls
+the latest changes when rerun:
 
 ## Quickstart
 

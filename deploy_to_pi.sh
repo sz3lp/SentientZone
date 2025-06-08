@@ -1,9 +1,19 @@
 #!/bin/bash
-# Automated deployment script for SentientZone using SSH keys
+# Automated deployment script for SentientZone using SSH keys or password auth
 
- f8j5tt-codex/remove-plain-text-credentials-and-improve-config
-set -e
+set -euo pipefail
+# ensure required commands are available locally
+for cmd in ssh git; do
+    if ! command -v "$cmd" >/dev/null; then
+        echo "$cmd command not found" >&2
+        exit 1
+    fi
+done
 
+SSH_CMD="ssh -o BatchMode=yes -o StrictHostKeyChecking=no"
+
+else
+    sudo git -C /opt/sentientzone pull --ff-only
 usage() {
     echo "Usage: $0 -H <host> -U <user> -R <repo_url> [-p]" >&2
     echo "  -H  Raspberry Pi hostname or IP" >&2
