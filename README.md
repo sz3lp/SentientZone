@@ -74,6 +74,16 @@ python main.py
 
 ## Deploy to Raspberry Pi
 
+ f8j5tt-codex/remove-plain-text-credentials-and-improve-config
+Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi:
+
+```bash
+./deploy_to_pi.sh -H <pi_host> -U <pi_user> -R <repo_url> [-p]
+```
+
+Provide `-p` to be prompted for the SSH password, otherwise the script assumes
+key-based authentication.
+
 The `deploy_to_pi.sh` script installs or updates SentientZone on a Raspberry Pi
 configured for key-based SSH access:
 
@@ -84,6 +94,7 @@ configured for key-based SSH access:
 The repository is cloned to `/opt/sentientzone` and the service started using
 `sz_ui.service`. The script fails if an SSH connection cannot be established.
 
+ main
 
 ## Directory Structure
 
