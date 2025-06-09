@@ -31,12 +31,8 @@ Daily logs are written to `$SZ_BASE_DIR/logs/sentientzone.log` by default.
 ## Quickstart
 
 ```bash
-# Clone repository
-git clone <REPO_URL>
-cd SentientZone
-
-# Install system and Python dependencies
-./setup.sh
+# Clone repository and run installer
+git clone <REPO_URL> && cd SentientZone && ./setup.sh
 
 # Provide your API key securely
 export SZ_API_KEY=<your-key>
@@ -45,6 +41,8 @@ export SZ_API_KEY=<your-key>
 # Start application (systemd unit installs as sz_ui.service)
 sudo systemctl start sz_ui.service
 ```
+
+This single command installs SentientZone so setup feels as effortless as installing a Nest thermostat.
 
 The installer assumes the project will be placed in `/home/pi/sz` and will run
 under the `pi` user.  To override these defaults set the environment variables
@@ -74,7 +72,6 @@ python main.py
 
 ## Deploy to Raspberry Pi
 
- f8j5tt-codex/remove-plain-text-credentials-and-improve-config
 Use the `deploy_to_pi.sh` script to install or update SentientZone on your Pi:
 
 ```bash
@@ -93,8 +90,6 @@ configured for key-based SSH access:
 
 The repository is cloned to `/opt/sentientzone` and the service started using
 `sz_ui.service`. The script fails if an SSH connection cannot be established.
-
- main
 
 ## Directory Structure
 
