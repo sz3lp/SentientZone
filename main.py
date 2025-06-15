@@ -14,6 +14,7 @@ from button_override import OverrideButton
 from override_handler import OverrideManager
 from metrics import get_metrics
 from logger import get_logger
+from cloud_sync import CloudSync
 
 
 
@@ -33,6 +34,11 @@ def main():
     button.start()
 
     metrics = get_metrics()
+
+    cloud = None
+    if state.config.get('cloud_url') or state.config.get('pull_config_url'):
+        cloud = CloudSync(state)
+        cloud.start()
 
     running = True
 
@@ -82,6 +88,9 @@ def main():
     hvac.set_mode('OFF')
     hvac.cleanup()
     sensors.cleanup()
+    if cloud:
+        cloud.stop()
+        cloud.join()
 
 
 if __name__ == '__main__':
