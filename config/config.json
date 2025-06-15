@@ -13,5 +13,8 @@
     },
     "loop_interval": 5,
     "motion_timeout": 300,
-    "api_key": "CHANGE_ME"
+    "api_key": "CHANGE_ME",
+    "cloud_url": "http://example.com/upload",
+    "pull_config_url": null,
+    "use_logic_engine": true
 }

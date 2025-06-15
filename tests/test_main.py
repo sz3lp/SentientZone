@@ -5,6 +5,7 @@ from state_manager import StateManager
 from control import HVACController
 from tests.mocks.mock_hardware import MockHardwareInterface
 from tests.mocks.mock_sensors import MockSensorReader
+import state_machine
 
 
 def create_state(tmpdir):
@@ -13,8 +14,10 @@ def create_state(tmpdir):
         "thresholds": {"cool": 75, "heat": 68},
         "motion_timeout": 300,
         "api_key": "k",
+        "use_logic_engine": True,
     }
-    sm = StateManager()
+    state_path = tmpdir / "state.json"
+    sm = StateManager(state_path=str(state_path))
     sm.config = config
     return sm
 
@@ -28,17 +31,16 @@ def run_cycle(state, sensors, hvac, override_mgr, now):
         last_motion = now.timestamp()
     state.set("last_motion_ts", last_motion)
     override_mgr.clear_if_expired(now)
-    if override_mgr.is_override_active(now):
-        mode = state.get("override_mode")
-    else:
-        if temp is None:
-            mode = "OFF"
-        elif temp > state.config["thresholds"]["cool"] and now.timestamp() - last_motion < state.config["motion_timeout"]:
-            mode = "COOL_ON"
-        elif temp < state.config["thresholds"]["heat"]:
-            mode = "HEAT_ON"
-        else:
-            mode = "FAN_ONLY"
+    motion_active = now.timestamp() - last_motion < state.config["motion_timeout"]
+    override_active = override_mgr.is_override_active(now)
+    mode = state_machine.decide(
+        temp,
+        motion_active,
+        state.get("current_mode") or "OFF",
+        override_active,
+        state.get("override_mode") or "OFF",
+        state.config["thresholds"],
+    )
     hvac.set_mode(mode)
     state.set("current_mode", mode)
 
@@ -55,7 +57,8 @@ def test_mode_transitions(tmp_path):
 
     override_mgr.apply_override("HEAT_ON", 1, "test", "test")
     run_cycle(sm, sensors, hvac, override_mgr, now)
-    assert sm.get("current_mode") == "HEAT_ON"
+    # immediate transition should enforce idle state
+    assert sm.get("current_mode") == "OFF"
 
     future = now + timedelta(minutes=2)
     run_cycle(sm, sensors, hvac, override_mgr, future)
