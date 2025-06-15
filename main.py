@@ -19,7 +19,6 @@ from ifi_reporter import IFIReporter
 import state_machine
 
 
-
 BASE_DIR = Path(os.environ.get("SZ_BASE_DIR", "/home/pi/sz"))
 LOG_PATH = str(BASE_DIR / "logs" / "sentientzone.log")
 
@@ -52,6 +51,7 @@ def main():
     def handle_signal(sig, frame):
         nonlocal running
         running = False
+
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 
@@ -67,6 +67,7 @@ def main():
                 metrics.record_temp(temp)
             else:
                 metrics.increment_error()
+
             if sensors.check_motion():
                 last_motion = time.time()
             state.set('last_motion_ts', last_motion)
@@ -75,6 +76,7 @@ def main():
             override_mgr.clear_if_expired(now)
             motion_active = time.time() - last_motion < motion_timeout
             override_active = override_mgr.is_override_active(now)
+
             if use_engine:
                 mode = state_machine.decide(
                     temp,
@@ -96,9 +98,11 @@ def main():
                         mode = 'HEAT_ON'
                     else:
                         mode = 'FAN_ONLY'
+
             hvac.set_mode(mode)
             state.set('current_mode', mode)
             metrics.write_metrics(state)
+
         except Exception as exc:
             logger.exception("Main loop error: %s", exc)
             if ifi:
@@ -106,6 +110,7 @@ def main():
                     ifi.log_event("error", state.config.get("device_id", ""), str(exc))
                 except Exception:
                     logger.exception("IFI logging failed")
+
         time.sleep(state.config.get('loop_interval', 5))
 
     logger.info('Shutting down')

@@ -1,22 +1,30 @@
 {
-    "pins": {
-        "dht": 17,
-        "motion": 27,
-        "cooling": 23,
-        "heating": 22,
-        "fan": 24,
-        "button": 6
-    },
-    "thresholds": {
-        "cool": 75,
-        "heat": 68
-    },
-    "loop_interval": 5,
-    "motion_timeout": 300,
-    "api_key": "CHANGE_ME",
-    "cloud_url": "http://example.com/upload",
-    "pull_config_url": null,
-    "use_logic_engine": true,
-    "ifi_url": "http://ifi.example.com/report",
-    "device_id": "CHANGE_ME"
+  "device_id": "SZ-DEV-0001",
+
+  "pins": {
+    "dht": 17,
+    "motion": 27,
+    "cooling": 23,
+    "heating": 22,
+    "fan": 24,
+    "button": 6
+  },
+
+  "thresholds": {
+    "cool": 75,
+    "heat": 68
+  },
+
+  "loop_interval": 5,
+  "motion_timeout": 300,
+
+  "api_key": "CHANGE_ME",
+
+  "cloud_url": "https://example.com/sz/upload",
+  "pull_config_url": "https://example.com/sz/config",
+  "ifi_url": "https://example.com/sz/ifi",
+
+  "use_logic_engine": true,
+  "allow_remote_config": false,
+  "protected_keys": ["device_id", "cloud_url", "ifi_url"]
 }
