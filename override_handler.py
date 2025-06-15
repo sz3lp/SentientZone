@@ -15,9 +15,10 @@ from control import VALID_MODES
 class OverrideManager:
     """Manage temporary HVAC overrides."""
 
-    def __init__(self, state: StateManager) -> None:
+    def __init__(self, state: StateManager, reporter: Any | None = None) -> None:
         self.state = state
         self.logger = get_logger(__name__)
+        self.reporter = reporter
 
     def is_override_active(self, now: datetime) -> bool:
         """Return True if an override is currently active."""
@@ -31,7 +32,13 @@ class OverrideManager:
                 self.logger.warning("Invalid override_until value: %s", until)
         return False
 
-    def apply_override(self, mode: str, duration_minutes: int, source: str, initiated_by: str) -> None:
+    def apply_override(
+        self,
+        mode: str,
+        duration_minutes: int,
+        source: str,
+        initiated_by: str,
+    ) -> None:
         """Apply a new override mode for the given duration."""
         if mode not in VALID_MODES:
             self.logger.error("Invalid override mode: %s", mode)
@@ -47,6 +54,15 @@ class OverrideManager:
             expiry.isoformat(),
         )
         log_override(mode, duration_minutes, source, initiated_by)
+        if self.reporter:
+            try:
+                self.reporter.log_event(
+                    "override",
+                    self.state.config.get("device_id", ""),
+                    mode,
+                )
+            except Exception:
+                self.logger.exception("IFI logging failed")
 
     def clear_if_expired(self, now: datetime) -> None:
         """Clear override if it has expired."""

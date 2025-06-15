@@ -14,6 +14,9 @@ from button_override import OverrideButton
 from override_handler import OverrideManager
 from metrics import get_metrics
 from logger import get_logger
+from cloud_sync import CloudSync
+from ifi_reporter import IFIReporter
+import state_machine
 
 
 
@@ -26,13 +29,23 @@ def main():
     state = StateManager()
     sensors = SensorManager(state.config)
     hvac = HVACController(state.config)
-    override_mgr = OverrideManager(state)
-    server = SentientZoneServer(state, LOG_PATH, override_mgr)
+    ifi = IFIReporter(state)
+    override_mgr = OverrideManager(state, reporter=ifi)
+    server = SentientZoneServer(state, LOG_PATH, override_mgr, ifi_reporter=ifi)
     server.start()
     button = OverrideButton(state.config['pins']['button'], override_mgr)
     button.start()
 
     metrics = get_metrics()
+    try:
+        ifi.boot_report()
+    except Exception:
+        logger.exception("IFI boot report failed")
+
+    cloud = None
+    if state.config.get('cloud_url') or state.config.get('pull_config_url'):
+        cloud = CloudSync(state)
+        cloud.start()
 
     running = True
 
@@ -44,44 +57,64 @@ def main():
 
     motion_timeout = state.config.get('motion_timeout', 300)
     last_motion = state.get('last_motion_ts') or 0
+    use_engine = state.config.get('use_logic_engine', True)
 
     while running:
-        temp = sensors.read_temperature()
-        if temp is not None:
-            state.set('last_temp_f', temp)
-            metrics.record_temp(temp)
-        else:
-            metrics.increment_error()
-        if sensors.check_motion():
-            last_motion = time.time()
-        state.set('last_motion_ts', last_motion)
-
-        now = datetime.now(timezone.utc)
-        override_mgr.clear_if_expired(now)
-        mode = state.get('current_mode', 'OFF')
-        if override_mgr.is_override_active(now):
-            mode = state.get('override_mode')
-        else:
-            if temp is None:
-                mode = 'OFF'
-            elif (
-                temp > state.config['thresholds']['cool']
-                and time.time() - last_motion < motion_timeout
-            ):
-                mode = 'COOL_ON'
-            elif temp < state.config['thresholds']['heat']:
-                mode = 'HEAT_ON'
+        try:
+            temp = sensors.read_temperature()
+            if temp is not None:
+                state.set('last_temp_f', temp)
+                metrics.record_temp(temp)
             else:
-                mode = 'FAN_ONLY'
-        hvac.set_mode(mode)
-        state.set('current_mode', mode)
-        metrics.write_metrics(state)
+                metrics.increment_error()
+            if sensors.check_motion():
+                last_motion = time.time()
+            state.set('last_motion_ts', last_motion)
+
+            now = datetime.now(timezone.utc)
+            override_mgr.clear_if_expired(now)
+            motion_active = time.time() - last_motion < motion_timeout
+            override_active = override_mgr.is_override_active(now)
+            if use_engine:
+                mode = state_machine.decide(
+                    temp,
+                    motion_active,
+                    state.get('current_mode') or 'OFF',
+                    override_active,
+                    state.get('override_mode') or 'OFF',
+                    state.config['thresholds'],
+                )
+            else:
+                if override_active:
+                    mode = state.get('override_mode')
+                else:
+                    if temp is None:
+                        mode = 'OFF'
+                    elif temp > state.config['thresholds']['cool'] and motion_active:
+                        mode = 'COOL_ON'
+                    elif temp < state.config['thresholds']['heat']:
+                        mode = 'HEAT_ON'
+                    else:
+                        mode = 'FAN_ONLY'
+            hvac.set_mode(mode)
+            state.set('current_mode', mode)
+            metrics.write_metrics(state)
+        except Exception as exc:
+            logger.exception("Main loop error: %s", exc)
+            if ifi:
+                try:
+                    ifi.log_event("error", state.config.get("device_id", ""), str(exc))
+                except Exception:
+                    logger.exception("IFI logging failed")
         time.sleep(state.config.get('loop_interval', 5))
 
     logger.info('Shutting down')
     hvac.set_mode('OFF')
     hvac.cleanup()
     sensors.cleanup()
+    if cloud:
+        cloud.stop()
+        cloud.join()
 
 
 if __name__ == '__main__':
