@@ -15,10 +15,17 @@ from override_handler import OverrideManager
 class SentientZoneServer(Thread):
     """Simple Flask server running in a thread."""
 
-    def __init__(self, state_manager, log_path: str, override_mgr: OverrideManager):
+    def __init__(
+        self,
+        state_manager,
+        log_path: str,
+        override_mgr: OverrideManager,
+        ifi_reporter: Any | None = None,
+    ):
         super().__init__(daemon=True)
         self.state = state_manager
         self.override_mgr = override_mgr
+        self.ifi_reporter = ifi_reporter
         self.log_path = log_path
         self.metrics = get_metrics()
         self.app = Flask(__name__)
@@ -113,6 +120,15 @@ class SentientZoneServer(Thread):
         @self.app.errorhandler(Exception)
         def handle_exception(exc: Exception):
             self.logger.exception("Unhandled error: %s", exc)
+            if self.ifi_reporter:
+                try:
+                    self.ifi_reporter.log_event(
+                        "error",
+                        self.state.config.get("device_id", ""),
+                        str(exc),
+                    )
+                except Exception:
+                    self.logger.exception("IFI logging failed")
             return jsonify({"error": "internal server error"}), 500
 
     def run(self):
